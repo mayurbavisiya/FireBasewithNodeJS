@@ -1,0 +1,135 @@
+
+<html>
+  <head>
+    <title>Video stream sample</title>
+	
+	
+<script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
+<script src="https://cdn.firebase.com/libs/geofire/4.1.2/geofire.min.js"></script>
+<script>
+  // Initialize Firebase
+  
+  var config = {
+    apiKey: "AIzaSyD_L3-XXXXXXXXXXXXXXXXXXXXX",
+    authDomain: "XXXXXXXXX.firebaseapp.com",
+    databaseURL: "https://XXXXXXXXXXXXXX",
+    projectId: "XXXXXXXXX",
+    storageBucket: "XXXXX.com",
+    messagingSenderId: "00000000"
+  };
+  firebase.initializeApp(config);
+  
+  
+var database ;
+
+
+
+function clicktoSave(){
+
+	// Intialize dataBase
+		database = firebase.database();
+		var locations = database.ref('locations');
+	
+	//this data will save to DB
+	var data = [{
+		"LONGITUDE": 55.300446,
+		"LATITUDE": 25.263672	
+	}];
+	
+	// two way to save data directly and to get response after saved
+	//locations.push(data);
+	locations.push(data, finished);
+}
+
+
+
+function finished(error) {
+	if (error) {
+		console.log('ooops! Something went wrong');
+		alert("ooops! Something went wrong");
+	} else {
+		console.log('data saved!');
+		alert("Data Saved");
+	}
+}
+ 
+ 
+ function getvalues(statickm , staticLong , staticLatt){
+ 
+ var statickm = 3;
+ var staticLong = 55.300446;
+ var staticLatt = 25.263672;
+ 
+ 
+		var finalLattLongArray = new Array();
+ 
+		database = firebase.database();
+		var ref = database.ref("locations");
+		ref.on("value", gotData, errData);
+
+		function errData(error) {
+		  console.log("Something went wrong.");
+		  console.log(error);
+		}
+
+		// The data comes back as an object
+		function gotData(data) {
+		  var location = data.val();
+		  // Grab all the keys to iterate over the object
+		  var keys = Object.keys(location);
+		  // Loop through array
+		  for (var i = 0; i < keys.length; i++) {
+			var key = keys[i];
+			var temp = location[key];
+			
+				for (var j = 0; j < temp.length; j++) {				
+					//console.log(temp[j].LATITUDE, temp[j].LONGITUDE, key);
+					var dynKm = getDistanceFromLatLonInKm(temp[j].LATITUDE,temp[j].LONGITUDE,staticLatt,staticLong);
+					//console.log(dynKm)
+					if(dynKm <= statickm){
+						var tempData = {"latt":temp[j].LATITUDE , "long":temp[j].LONGITUDE};
+						finalLattLongArray.push(tempData);
+					}
+					
+				}
+		  }
+		  var myJsonString = JSON.stringify(finalLattLongArray);
+		  alert(myJsonString);
+	}
+ }
+ 
+ 
+ //getDistanceFromLatLonInKm(lat1,lon1,staticlat2,staticlon2)
+ function getDistanceFromLatLonInKm(lat1,lon1,lat2,lon2) {
+		var R = 6371; // Radius of the earth in km
+		var dLat = deg2rad(lat2-lat1);  // deg2rad below
+		var dLon = deg2rad(lon2-lon1); 
+		var a = 
+			Math.sin(dLat/2) * Math.sin(dLat/2) +
+			Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+			Math.sin(dLon/2) * Math.sin(dLon/2)
+			; 
+		var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+		var d = R * c; // Distance in km
+		return d;
+}
+
+function deg2rad(deg) {
+  return deg * (Math.PI/180)
+}
+
+</script>
+  </head>
+
+  <body>
+
+    
+    <!-- <button id="toggleButton">Start/Stop</button> -->
+    <script src="index.js"></script>
+	<script src="jquery.js"></script>	
+	<input type="button" name="savebtn" id="savebtn" value="SaveData" onclick="clicktoSave();">	
+	<input type="button" name="getBtn" value="Get Data" onclick="getvalues();">
+	
+  </body>
+
+</html>
